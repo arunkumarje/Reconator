@@ -1,25 +1,24 @@
-FROM python:3.10-slim-bullseye
+FROM python:3.10-slim
 
 WORKDIR /app
 
 COPY requirements.txt .
 
-COPY .gf /root/.gf
+# Install system dependencies
+RUN apt-get update && apt-get install -y \
+    build-essential \
+    libssl-dev \
+    libffi-dev \
+    python3-dev \
+    libpq-dev \
+    && rm -rf /var/lib/apt/lists/*
 
-RUN apt-get update -y \
- && apt-get install -y --no-install-recommends gcc libcurl4-openssl-dev libc6-dev libssl-dev dnsutils \
- && rm -rf /var/lib/apt/lists/*
+# Upgrade pip/setuptools/wheel first
+RUN pip install --upgrade pip setuptools wheel
 
-# 🔥 IMPORTANT: pin pip version (wfuzz fix)
-RUN pip install "pip<24.1"
-
+# Install Python dependencies
 RUN pip install -r requirements.txt
 
 COPY app.py .
-COPY . .
 
-ENV PYTHONWARNINGS=ignore
-
-RUN chmod -R 777 .
-
-CMD ["python", "app.py"]
+CMD ["python3", "app.py"]
