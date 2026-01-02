@@ -6,18 +6,20 @@ COPY requirements.txt .
 
 COPY .gf /root/.gf
 
-RUN apt-get update -y && apt-get install -y --no-install-recommends gcc libcurl4-openssl-dev libc6-dev libssl-dev dnsutils && rm -rf /var/lib/apt/lists/*
+RUN apt-get update -y \
+ && apt-get install -y --no-install-recommends gcc libcurl4-openssl-dev libc6-dev libssl-dev dnsutils \
+ && rm -rf /var/lib/apt/lists/*
 
-RUN pip install --upgrade pip
+# 🔥 IMPORTANT: pin pip version (wfuzz fix)
+RUN pip install "pip<24.1"
 
 RUN pip install -r requirements.txt
 
 COPY app.py .
-
 COPY . .
 
 ENV PYTHONWARNINGS=ignore
 
 RUN chmod -R 777 .
 
-CMD ["python3", "app.py"]
+CMD ["python", "app.py"]
