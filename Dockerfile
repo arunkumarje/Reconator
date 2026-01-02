@@ -1,24 +1,27 @@
+# Use official Python image
 FROM python:3.10-slim
-
-WORKDIR /app
-
-COPY requirements.txt .
 
 # Install system dependencies
 RUN apt-get update && apt-get install -y \
     build-essential \
-    libssl-dev \
-    libffi-dev \
-    python3-dev \
     libpq-dev \
+    gcc \
+    g++ \
+    python3-dev \
     && rm -rf /var/lib/apt/lists/*
 
-# Upgrade pip/setuptools/wheel first
-RUN pip install --upgrade pip setuptools wheel
+# Downgrade pip for compatibility with old packages
+RUN pip install "pip<24.1" setuptools==58.1.0 wheel
+
+# Copy your requirements
+COPY requirements.txt .
 
 # Install Python dependencies
 RUN pip install -r requirements.txt
 
+# Copy the app
 COPY app.py .
 
-CMD ["python3", "app.py"]
+# Expose port and run
+EXPOSE 8000
+CMD ["gunicorn", "-w", "4", "-b", "0.0.0.0:8000", "app:app"]
